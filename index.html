@@ -5,10 +5,822 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Electro Quiz | TECH TONIC 2K26</title>
+    <meta name="description" content="Interactive Electro Quiz for TECH TONIC 2K26 - Department of ECE">
     <link
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --gold-light: #e8c84a;
+            --gold-dark: #b8962e;
+            --gold-glow: rgba(212, 175, 55, 0.25);
+            --dark: #0a0a0a;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(212, 175, 55, 0.15);
+            --success: #4CAF50;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                linear-gradient(135deg, #030305 0%, #0a0a12 50%, #050507 100%);
+            z-index: -2;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(10, 10, 10, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        nav h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: clamp(12px, 3.5vw, 18px);
+            letter-spacing: 2px;
+        }
+
+        .screen {
+            display: none;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 30px 20px 60px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-hero {
+            text-align: center;
+            padding: 50px 0 30px;
+        }
+
+        .welcome-hero .icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+        }
+
+        .welcome-hero h1 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.6rem, 6vw, 2.8rem);
+            color: var(--gold);
+            letter-spacing: 3px;
+            text-shadow: 0 0 40px rgba(212, 175, 55, 0.2);
+        }
+
+        .welcome-hero .tagline {
+            margin-top: 10px;
+            font-size: clamp(0.85rem, 2.5vw, 1.05rem);
+            color: #aaa;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 28px 24px;
+            margin-bottom: 18px;
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(212, 175, 55, 0.35);
+        }
+
+        .card.highlight {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.02));
+            border-color: rgba(212, 175, 55, 0.25);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .card-header .icon {
+            font-size: 22px;
+        }
+
+        .card-header h2 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #ffd700, #fff8dc, #ffc107, #ffd700);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: goldShimmer 3s linear infinite;
+        }
+
+        @keyframes goldShimmer {
+            0% {
+                background-position: 0% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #999;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.04);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.12);
+        }
+
+        select.form-input {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23d4af37' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        select.form-input option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--gold), #c9a020);
+            color: #000;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.2);
+            margin-top: 20px;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(212, 175, 55, 0.35);
+        }
+
+        .quiz-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        .round-badge {
+            background: rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .timer.warning {
+            color: #ff9800;
+            animation: timerPulse 1s infinite;
+        }
+
+        .timer.danger {
+            color: var(--error);
+            animation: timerPulse 0.5s infinite;
+        }
+
+        @keyframes timerPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .progress-container {
+            margin: 15px 0 25px;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px 24px;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question-number {
+            font-size: 0.78rem;
+            color: var(--gold);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .question-text {
+            font-size: clamp(1rem, 2.8vw, 1.2rem);
+            line-height: 1.7;
+            color: #e0e0e0;
+            margin-bottom: 25px;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            color: #ccc;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #fff;
+        }
+
+        .option-btn.selected {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+        }
+
+        .option-label {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #888;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .option-btn.selected .option-label {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn-nav {
+            flex: 1;
+            padding: 14px;
+            border-radius: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .btn-prev {
+            background: rgba(255, 255, 255, 0.06);
+            color: #aaa;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-prev:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #000;
+            font-weight: 700;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.25);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--success), #388E3C);
+            color: #fff;
+        }
+
+        .question-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
+        }
+
+        .q-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #666;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .q-dot.answered {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: rgba(212, 175, 55, 0.3);
+            color: var(--gold);
+        }
+
+        .q-dot.current {
+            background: var(--gold);
+            color: #000;
+            border-color: var(--gold);
+            transform: scale(1.1);
+        }
+
+        .results-header {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 4px solid var(--gold);
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.2);
+            animation: scoreReveal 0.8s ease;
+        }
+
+        @keyframes scoreReveal {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .score-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .score-total {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 14px 22px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-item .num {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .stat-item .label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .review-item {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+
+        .review-item.correct {
+            border-color: rgba(76, 175, 80, 0.4);
+        }
+
+        .review-item.wrong {
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .review-q-num {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .review-q-text {
+            font-size: 0.92rem;
+            color: #e0e0e0;
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+
+        .review-option {
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #888;
+        }
+
+        .review-option.is-correct {
+            background: rgba(76, 175, 80, 0.12);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: var(--success);
+        }
+
+        .review-option.is-wrong {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--error);
+        }
+
+        .review-option .marker {
+            font-size: 1.1rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 9999;
+            transition: transform 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: rgba(76, 175, 80, 0.9);
+            color: #fff;
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, 0.9);
+            color: #fff;
+        }
+
+        .toast.info {
+            background: rgba(212, 175, 55, 0.9);
+            color: #000;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #111;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-box h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-box p {
+            color: #aaa;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btns button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.08);
+            color: #aaa;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #000;
+        }
+
+        .page-footer {
+            text-align: center;
+            padding: 20px;
+            color: #444;
+            font-size: 12px;
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 45px;
+            height: 45px;
+            border: 3px solid rgba(212, 175, 55, 0.15);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media(max-width:480px) {
+            nav {
+                padding: 10px 12px;
+            }
+
+            nav h2 {
+                font-size: clamp(10px, 2.8vw, 14px);
+            }
+
+            .screen {
+                padding: 20px 14px 40px;
+            }
+
+            .welcome-hero {
+                padding: 30px 0 20px;
+            }
+
+            .welcome-hero .icon {
+                font-size: 44px;
+            }
+
+            .card {
+                padding: 20px 16px;
+                border-radius: 14px;
+            }
+
+            .question-card {
+                padding: 22px 16px;
+            }
+
+            .option-btn {
+                padding: 13px 14px;
+            }
+
+            .option-label {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+            }
+
+            .timer {
+                font-size: 1.1rem;
+            }
+
+            .score-circle {
+                width: 110px;
+                height: 110px;
+            }
+
+            .score-value {
+                font-size: 1.7rem;
+            }
+
+            .q-dot {
+                width: 30px;
+                height: 30px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -16,7 +828,6 @@
     <!-- Nav -->
     <nav>
         <h2>TECH TONIC 2K26</h2>
-        <a href="../event pages/quiz.html" class="back-btn">← Back</a>
     </nav>
 
     <!-- ════════════ WELCOME SCREEN ════════════ -->
@@ -174,7 +985,316 @@
 
     <div class="page-footer">TECH TONIC 2K26 — Department of ECE</div>
 
-    <script src="quiz.js"></script>
+    <script>
+        const CONFIG = {
+            rounds: {
+                1: { name: 'Round 1', questions: 25, time: 15 * 60, desc: 'Basic Engineering & Science Fundamentals' },
+                2: { name: 'Round 2 — Set 1', questions: 15, time: 10 * 60, desc: 'Electronics, Communication & AI/ML' },
+                3: { name: 'Round 2 — Set 2', questions: 15, time: 10 * 60, desc: 'Digital Electronics, Communication & IoT' }
+            }
+        };
+
+        const FIREBASE_CONFIG = {
+            databaseURL: "https://techtonic-quiz-default-rtdb.firebaseio.com"
+        };
+
+        const SAMPLE_QUESTIONS = {
+            1: [
+                { q: "Engineering is the application of:", options: ["Science", "Mathematics", "Scientific principles", "History"], answer: 2, type: "mcq" },
+                { q: "Unit of Force is:", options: ["Joule", "Newton", "Watt", "Pascal"], answer: 1, type: "mcq" },
+                { q: "Ohm's Law is expressed as:", options: ["V = IR", "P = VI", "F = ma", "E = mc²"], answer: 0, type: "mcq" },
+                { q: "SI unit of Power is:", options: ["Joule", "Watt", "Volt", "Ampere"], answer: 1, type: "mcq" },
+                { q: "A device used to increase or decrease voltage is:", options: ["Motor", "Generator", "Transformer", "Battery"], answer: 2, type: "mcq" },
+                { q: "Stress is defined as:", options: ["Force × Area", "Force / Area", "Area / Force", "Mass × Acceleration"], answer: 1, type: "mcq" },
+                { q: "The working principle of a lever is based on:", options: ["Friction", "Moment", "Pressure", "Velocity"], answer: 1, type: "mcq" },
+                { q: "Unit of Current is:", options: ["Volt", "Ohm", "Ampere", "Watt"], answer: 2, type: "mcq" },
+                { q: "Which is a renewable energy source?", options: ["Coal", "Diesel", "Solar", "Petrol"], answer: 2, type: "mcq" },
+                { q: "Bernoulli's theorem is related to:", options: ["Heat", "Electricity", "Fluids", "Sound"], answer: 2, type: "mcq" },
+                { q: "Hooke's Law is related to:", options: ["Electricity", "Elasticity", "Heat", "Magnetism"], answer: 1, type: "mcq" },
+                { q: "Casting is a process of:", options: ["Joining metals", "Cutting metals", "Shaping molten metal", "Polishing metal"], answer: 2, type: "mcq" },
+                { q: "The efficiency of a machine is always:", options: ["More than 100%", "Equal to 100%", "Less than or equal to 100%", "Zero"], answer: 2, type: "mcq" },
+                { q: "AC stands for:", options: ["Alternating Current", "Active Current", "Ampere Current", "Automatic Current"], answer: 0, type: "mcq" },
+                { q: "The unit of resistance is:", options: ["Volt", "Ohm", "Watt", "Tesla"], answer: 1, type: "mcq" },
+                { q: "The device that converts mechanical energy into electrical energy is:", options: ["Motor", "Transformer", "Generator", "Inverter"], answer: 2, type: "mcq" },
+                { q: "Pascal is the unit of:", options: ["Pressure", "Power", "Energy", "Work"], answer: 0, type: "mcq" },
+                { q: "Work done is zero when:", options: ["Force is applied", "Displacement is zero", "Object moves", "Power is high"], answer: 1, type: "mcq" },
+                { q: "Thermal conductivity is related to:", options: ["Electricity", "Heat transfer", "Magnetism", "Sound"], answer: 1, type: "mcq" },
+                { q: "A closed circuit means:", options: ["Broken path", "Complete path", "No current", "High resistance"], answer: 1, type: "mcq" },
+                { q: "Horsepower is a unit of:", options: ["Force", "Power", "Energy", "Speed"], answer: 1, type: "mcq" },
+                { q: "Which is a semiconductor?", options: ["Copper", "Glass", "Silicon", "Wood"], answer: 2, type: "mcq" },
+                { q: "The formula for Power is:", options: ["P = V/I", "P = VI", "P = I/R", "P = F/A"], answer: 1, type: "mcq" },
+                { q: "The first class lever has fulcrum placed:", options: ["At one end", "Between load and effort", "Near load", "Near effort"], answer: 1, type: "mcq" },
+                { q: "Welding is a process of:", options: ["Cutting", "Drilling", "Joining metals", "Painting"], answer: 2, type: "mcq" }
+            ],
+            2: [
+                { q: "The basic building block of digital electronics is:", options: ["Transistor", "Diode", "Logic Gate", "Resistor"], answer: 2, type: "mcq" },
+                { q: "A PN junction diode conducts in:", options: ["Reverse bias only", "Forward bias only", "Both directions", "No direction"], answer: 1, type: "mcq" },
+                { q: "The unit of capacitance is:", options: ["Henry", "Farad", "Ohm", "Tesla"], answer: 1, type: "mcq" },
+                { q: "In a common emitter amplifier, the output signal is in phase with the input signal.", options: ["True", "False"], answer: 1, type: "tf" },
+                { q: "BJT stands for:", options: ["Binary Junction Transistor", "Bipolar Junction Transistor", "Basic Junction Transistor", "Balanced Junction Transistor"], answer: 1, type: "mcq" },
+                { q: "The bandwidth of an AM signal is twice the highest frequency of the message signal.", options: ["True", "False"], answer: 0, type: "tf" },
+                { q: "The output of an AND gate is HIGH when:", options: ["Any one input is HIGH", "All inputs are HIGH", "All inputs are LOW", "One input is LOW"], answer: 1, type: "mcq" },
+                { q: "The process of converting analog signal to digital signal is called:", options: ["Modulation", "Amplification", "Sampling", "Rectification"], answer: 2, type: "mcq" },
+                { q: "The frequency range of FM broadcasting is:", options: ["30–300 kHz", "300–3000 kHz", "88–108 MHz", "1–10 GHz"], answer: 2, type: "mcq" },
+                { q: "An amplifier increases:", options: ["Frequency", "Power", "Resistance", "Wavelength"], answer: 1, type: "mcq" },
+                { q: "The full form of LED is:", options: ["Light Emitting Diode", "Low Energy Device", "Light Energy Detector", "Linear Emitting Device"], answer: 0, type: "mcq" },
+                { q: "What type of learning algorithm is used when labeled data is available?", options: ["Reinforcement Learning", "Unsupervised Learning", "Supervised Learning", "Semi-Supervised Learning"], answer: 2, type: "mcq" },
+                { q: "Which algorithm is commonly used for classification problems in Machine Learning?", options: ["K-Nearest Neighbors", "Linear Regression", "Fourier Transform", "Huffman Coding"], answer: 0, type: "mcq" },
+                { q: "Which language is most commonly used for AI and ML development?", options: ["Python", "Java", "C", "MATLAB"], answer: 0, type: "mcq" },
+                { q: "In digital electronics, binary system uses:", options: ["0–9", "0–7", "0–1", "1–10"], answer: 2, type: "mcq" }
+            ],
+            3: [
+                { q: "A flip-flop is used to:", options: ["Amplify signal", "Store one bit of data", "Filter noise", "Increase voltage"], answer: 1, type: "mcq" },
+                { q: "The gain of an amplifier is:", options: ["Output/Input", "Input/Output", "Voltage × Current", "Power × Time"], answer: 0, type: "mcq" },
+                { q: "The main function of a rectifier is to convert:", options: ["AC to DC", "DC to AC", "Analog to Digital", "Digital to Analog"], answer: 0, type: "mcq" },
+                { q: "The device used to generate carrier signal is:", options: ["Amplifier", "Oscillator", "Transformer", "Diode"], answer: 1, type: "mcq" },
+                { q: "A flip-flop can store more than one bit of data at a time.", options: ["True", "False"], answer: 1, type: "tf" },
+                { q: "The bandwidth of a signal is measured in:", options: ["Volts", "Amperes", "Hertz", "Ohms"], answer: 2, type: "mcq" },
+                { q: "The logic gate which gives HIGH output when inputs are different is:", options: ["AND", "OR", "XOR", "NAND"], answer: 2, type: "mcq" },
+                { q: "The speed of electromagnetic wave in free space is:", options: ["3 × 10⁶ m/s", "3 × 10⁸ m/s", "3 × 10¹⁰ m/s", "3 × 10⁴ m/s"], answer: 1, type: "mcq" },
+                { q: "An ideal operational amplifier has infinite input impedance.", options: ["True", "False"], answer: 0, type: "tf" },
+                { q: "An antenna is used to:", options: ["Store energy", "Transmit and receive signals", "Amplify signals", "Rectify signals"], answer: 1, type: "mcq" },
+                { q: "GSM stands for:", options: ["Global Signal Mode", "General Signal Method", "Global System for Mobile communication", "Ground System Mobile"], answer: 2, type: "mcq" },
+                { q: "Which sensor is commonly used in IoT systems to measure temperature?", options: ["LDR", "LM35", "Ultrasonic sensor", "IR sensor"], answer: 1, type: "mcq" },
+                { q: "Which protocol is widely used for IoT communication?", options: ["HTTP", "FTP", "SMTP", "MQTT"], answer: 3, type: "mcq" },
+                { q: "In embedded systems, a microcontroller typically includes:", options: ["CPU only", "CPU + RAM + ROM + I/O ports", "RAM only", "CPU + Hard disk"], answer: 1, type: "mcq" },
+                { q: "A multiplexer is used to:", options: ["Increase power", "Select one input from many inputs", "Store data", "Convert AC to DC"], answer: 1, type: "mcq" }
+            ]
+        };
+
+        let state = {
+            teamName: '', participantId: '', currentRound: 1, currentQuestion: 0,
+            answers: [], timeLeft: 0, timerInterval: null, startTime: null,
+            questions: [], submitted: false, score: 0
+        };
+
+        const $ = id => document.getElementById(id);
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            $(id).classList.add('active');
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = $('toast');
+            toast.textContent = msg;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function startQuiz() {
+            const name = $('teamName').value.trim();
+            const round = parseInt($('roundSelect').value);
+            if (!name) return showToast('Please enter your team name', 'error');
+            state.teamName = name;
+            state.participantId = 'TT26-' + Date.now();
+            state.currentRound = round;
+            state.currentQuestion = 0;
+            state.submitted = false;
+            state.score = 0;
+            state.startTime = Date.now();
+            loadQuestions(round);
+        }
+
+        function loadQuestions(round) {
+            showScreen('loadingScreen');
+            setTimeout(() => useSampleQuestions(round), 800);
+        }
+
+        function useSampleQuestions(round) {
+            state.questions = SAMPLE_QUESTIONS[round] || [];
+            state.answers = new Array(state.questions.length).fill(-1);
+            initQuizScreen();
+        }
+
+        function initQuizScreen() {
+            state.timeLeft = CONFIG.rounds[state.currentRound].time;
+            showScreen('quizScreen');
+            $('roundBadge').textContent = CONFIG.rounds[state.currentRound].name.toUpperCase();
+            renderQuestion();
+            renderQuestionNav();
+            startTimer();
+        }
+
+        function renderQuestion() {
+            const q = state.questions[state.currentQuestion];
+            const total = state.questions.length;
+            const idx = state.currentQuestion;
+            $('questionNumber').textContent = `QUESTION ${idx + 1} OF ${total}`;
+            $('questionText').textContent = q.q;
+            $('progressText').textContent = `${idx + 1} / ${total}`;
+            $('progressFill').style.width = `${((idx + 1) / total) * 100}%`;
+            const optionsHtml = q.options.map((opt, i) => {
+                const labels = q.type === 'tf' ? ['T', 'F'] : ['A', 'B', 'C', 'D'];
+                const selected = state.answers[idx] === i ? 'selected' : '';
+                return `<button class="option-btn ${selected}" onclick="selectOption(${i})">
+                    <span class="option-label">${labels[i]}</span>
+                    <span>${opt}</span>
+                </button>`;
+            }).join('');
+            $('optionsGrid').innerHTML = optionsHtml;
+            $('prevBtn').style.display = idx === 0 ? 'none' : 'block';
+            const isLast = idx === total - 1;
+            $('nextBtn').textContent = isLast ? '✓ Submit Quiz' : 'Next →';
+            $('nextBtn').className = `btn-nav ${isLast ? 'btn-submit' : 'btn-next'}`;
+            $('nextBtn').onclick = isLast ? () => confirmSubmit() : () => goNext();
+            updateQuestionNav();
+        }
+
+        function selectOption(i) { state.answers[state.currentQuestion] = i; renderQuestion(); }
+        function goNext() { if (state.currentQuestion < state.questions.length - 1) { state.currentQuestion++; renderQuestion(); } }
+        function goPrev() { if (state.currentQuestion > 0) { state.currentQuestion--; renderQuestion(); } }
+        function jumpToQuestion(i) { state.currentQuestion = i; renderQuestion(); }
+
+        function renderQuestionNav() {
+            $('questionDots').innerHTML = state.questions.map((_, i) =>
+                `<div class="q-dot" onclick="jumpToQuestion(${i})">${i + 1}</div>`
+            ).join('');
+        }
+
+        function updateQuestionNav() {
+            document.querySelectorAll('.q-dot').forEach((dot, i) => {
+                dot.className = 'q-dot';
+                if (i === state.currentQuestion) dot.classList.add('current');
+                else if (state.answers[i] !== -1) dot.classList.add('answered');
+            });
+        }
+
+        function startTimer() {
+            clearInterval(state.timerInterval);
+            updateTimerDisplay();
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                updateTimerDisplay();
+                if (state.timeLeft <= 0) {
+                    clearInterval(state.timerInterval);
+                    showToast('⏰ Time\'s up! Auto-submitting...', 'error');
+                    setTimeout(() => submitQuiz(), 1000);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const min = Math.floor(state.timeLeft / 60);
+            const sec = state.timeLeft % 60;
+            const timerEl = $('timer');
+            timerEl.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+            timerEl.className = 'timer';
+            if (state.timeLeft <= 60) timerEl.classList.add('danger');
+            else if (state.timeLeft <= 120) timerEl.classList.add('warning');
+        }
+
+        function confirmSubmit() {
+            const unanswered = state.answers.filter(a => a === -1).length;
+            $('modalMessage').innerHTML = unanswered > 0
+                ? `You have <b style="color:#ff9800">${unanswered} unanswered</b> question${unanswered > 1 ? 's' : ''}. Are you sure you want to submit?`
+                : 'Are you sure you want to submit your answers? This cannot be undone.';
+            $('confirmModal').classList.add('active');
+        }
+
+        function closeModal() { $('confirmModal').classList.remove('active'); }
+
+        function submitQuiz() {
+            if (state.submitted) return;
+            state.submitted = true;
+            clearInterval(state.timerInterval);
+            closeModal();
+            let correct = 0;
+            state.questions.forEach((q, i) => { if (state.answers[i] === q.answer) correct++; });
+            state.score = correct;
+            const timeTaken = Math.round((Date.now() - state.startTime) / 1000);
+            saveToFirebase(correct, state.questions.length, timeTaken);
+            showResults(correct, state.questions.length, timeTaken);
+        }
+
+        function saveToFirebase(score, total, timeTaken) {
+            if (!FIREBASE_CONFIG.databaseURL) return;
+            try {
+                const roundNames = { 1: 'round1', 2: 'round2_set1', 3: 'round2_set2' };
+                const path = roundNames[state.currentRound] || 'round1';
+                fetch(`${FIREBASE_CONFIG.databaseURL}/quiz_results/${path}.json`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        team: state.teamName, round: state.currentRound,
+                        score: score, total: total, time: timeTaken,
+                        timestamp: new Date().toISOString(), winner: false
+                    })
+                }).catch(() => { });
+            } catch (e) { }
+        }
+
+        function showResults(score, total, timeTaken) {
+            showScreen('resultsScreen');
+            $('scoreValue').textContent = score;
+            $('scoreTotal').textContent = `out of ${total}`;
+            $('statCorrect').textContent = score;
+            $('statWrong').textContent = total - score;
+            $('statTime').textContent = formatTime(timeTaken);
+            $('resultRound').textContent = CONFIG.rounds[state.currentRound].name;
+            const pct = (score / total) * 100;
+            const circle = document.querySelector('.score-circle');
+            if (pct >= 70) circle.style.borderColor = '#4CAF50';
+            else if (pct >= 40) circle.style.borderColor = '#ff9800';
+            else circle.style.borderColor = '#ef4444';
+            renderReview();
+        }
+
+        function formatTime(seconds) { return `${Math.floor(seconds / 60)}m ${seconds % 60}s`; }
+
+        function renderReview() {
+            $('reviewList').innerHTML = state.questions.map((q, i) => {
+                const userAns = state.answers[i];
+                const isCorrect = userAns === q.answer;
+                const labels = q.type === 'tf' ? ['T', 'F'] : ['A', 'B', 'C', 'D'];
+                const optionsHtml = q.options.map((opt, j) => {
+                    let cls = '', marker = '';
+                    if (j === q.answer) { cls = 'is-correct'; marker = '✓'; }
+                    if (j === userAns && !isCorrect) { cls = 'is-wrong'; marker = '✗'; }
+                    return `<div class="review-option ${cls}">
+                        <span class="option-label" style="width:26px;height:26px;font-size:0.75rem">${labels[j]}</span>
+                        <span>${opt}</span>
+                        ${marker ? `<span class="marker">${marker}</span>` : ''}
+                    </div>`;
+                }).join('');
+                return `<div class="review-item ${isCorrect ? 'correct' : 'wrong'}">
+                    <div class="review-q-num">Q${i + 1} ${isCorrect ? '✓ Correct' : (userAns === -1 ? '— Skipped' : '✗ Wrong')}</div>
+                    <div class="review-q-text">${q.q}</div>
+                    ${optionsHtml}
+                </div>`;
+            }).join('');
+        }
+
+        function restartQuiz() {
+            state = { ...state, currentQuestion: 0, answers: [], timeLeft: 0, submitted: false, score: 0, questions: [] };
+            clearInterval(state.timerInterval);
+            showScreen('welcomeScreen');
+        }
+
+        window.addEventListener('beforeunload', (e) => {
+            if (state.questions.length > 0 && !state.submitted) {
+                let correct = 0;
+                state.questions.forEach((q, i) => { if (state.answers[i] === q.answer) correct++; });
+                const timeTaken = Math.round((Date.now() - state.startTime) / 1000);
+                if (FIREBASE_CONFIG.databaseURL) {
+                    const roundNames = { 1: 'round1', 2: 'round2_set1', 3: 'round2_set2' };
+                    const path = roundNames[state.currentRound] || 'round1';
+                    navigator.sendBeacon(
+                        `${FIREBASE_CONFIG.databaseURL}/quiz_results/${path}.json`,
+                        JSON.stringify({
+                            team: state.teamName, round: state.currentRound,
+                            score: correct, total: state.questions.length, time: timeTaken,
+                            timestamp: new Date().toISOString(), winner: false, autoSubmitted: true
+                        })
+                    );
+                }
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => { showScreen('welcomeScreen'); });
+    </script>
 </body>
 
 </html>
