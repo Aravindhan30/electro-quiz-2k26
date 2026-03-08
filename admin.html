@@ -344,8 +344,9 @@
             margin-top: 4px;
         }
 
-        /* Refresh button */
-        .btn-refresh {
+        /* Refresh & PDF buttons */
+        .btn-refresh,
+        .btn-pdf {
             padding: 8px 20px;
             border: 1px solid rgba(212, 175, 55, 0.3);
             border-radius: 10px;
@@ -358,9 +359,21 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        .btn-refresh:hover {
+        .btn-refresh:hover,
+        .btn-pdf:hover {
             background: var(--gold);
             color: #000;
+        }
+
+        .btn-pdf {
+            border-color: rgba(76, 175, 80, 0.3);
+            background: rgba(76, 175, 80, 0.08);
+            color: var(--success);
+        }
+
+        .btn-pdf:hover {
+            background: var(--success);
+            color: #fff;
         }
 
         .page-footer {
@@ -469,7 +482,10 @@
         <div
             style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px">
             <h2 class="section-title" style="margin:0">🏆 Leaderboard</h2>
-            <button class="btn-refresh" onclick="refreshData()">↻ Refresh</button>
+            <div style="display:flex;gap:8px">
+                <button class="btn-refresh" onclick="refreshData()">↻ Refresh</button>
+                <button class="btn-pdf" onclick="generatePDF()">📄 Download PDF</button>
+            </div>
         </div>
 
         <div class="filter-tabs">
@@ -503,6 +519,10 @@
 
     <div id="toast" class="toast"></div>
     <div class="page-footer">TECH TONIC 2K26 — Department of ECE</div>
+
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 
     <script>
         // Config
@@ -644,6 +664,188 @@
             }
 
             renderLeaderboard();
+        }
+
+        // ═══════════════════════════════════════════
+        //   PDF REPORT GENERATION
+        // ═══════════════════════════════════════════
+        function generatePDF() {
+            if (allResults.length === 0) {
+                showToast('No data to generate report', 'error');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageW = doc.internal.pageSize.getWidth();
+            const pageH = doc.internal.pageSize.getHeight();
+            const margin = 15;
+
+            // Colors
+            const gold = [212, 175, 55];
+            const darkBg = [15, 15, 20];
+            const cardBg = [25, 25, 35];
+            const gray = [150, 150, 150];
+            const green = [76, 175, 80];
+
+            // Filter data same as current view
+            let data = currentFilter === 0 ? [...allResults] : allResults.filter(r => r.round === currentFilter);
+            data.sort((a, b) => b.score - a.score || a.time - b.time);
+
+            const filterNames = { 0: 'All Rounds', 1: 'Round 1', 2: 'R2 Set 1', 3: 'R2 Set 2' };
+            const filterLabel = filterNames[currentFilter] || 'All Rounds';
+
+            // ─── Dark Background ───
+            doc.setFillColor(...darkBg);
+            doc.rect(0, 0, pageW, pageH, 'F');
+
+            // ─── Header Gold Bar ───
+            doc.setFillColor(...gold);
+            doc.rect(0, 0, pageW, 2, 'F');
+
+            // ─── Title ───
+            let y = 18;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(22);
+            doc.setTextColor(...gold);
+            doc.text('TECH TONIC 2K26', pageW / 2, y, { align: 'center' });
+
+            y += 8;
+            doc.setFontSize(11);
+            doc.setTextColor(...gray);
+            doc.text('Electro Quiz — Official Report', pageW / 2, y, { align: 'center' });
+
+            // ─── Divider ───
+            y += 6;
+            doc.setDrawColor(...gold);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageW - margin, y);
+
+            // ─── Report Meta ───
+            y += 8;
+            doc.setFontSize(9);
+            doc.setTextColor(...gray);
+            const now = new Date();
+            doc.text(`Generated: ${now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} at ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`, margin, y);
+            doc.text(`Filter: ${filterLabel}`, pageW - margin, y, { align: 'right' });
+
+            // ─── Stats Cards ───
+            y += 10;
+            const cardW = (pageW - margin * 2 - 12) / 3;
+            const cardH = 22;
+
+            const totalTeams = data.length;
+            const avgScore = data.length > 0 ? Math.round(data.reduce((s, r) => s + (r.score / r.total) * 100, 0) / data.length) + '%' : '—';
+            const topScore = data.length > 0 ? data[0].score + '/' + data[0].total : '—';
+
+            const stats = [
+                { label: 'Total Teams', value: String(totalTeams) },
+                { label: 'Avg Score', value: avgScore },
+                { label: 'Top Score', value: topScore }
+            ];
+
+            stats.forEach((stat, i) => {
+                const x = margin + i * (cardW + 6);
+                doc.setFillColor(...cardBg);
+                doc.roundedRect(x, y, cardW, cardH, 3, 3, 'F');
+                doc.setDrawColor(gold[0], gold[1], gold[2]);
+                doc.setLineWidth(0.3);
+                doc.roundedRect(x, y, cardW, cardH, 3, 3, 'S');
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(14);
+                doc.setTextColor(...gold);
+                doc.text(stat.value, x + cardW / 2, y + 10, { align: 'center' });
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7);
+                doc.setTextColor(...gray);
+                doc.text(stat.label.toUpperCase(), x + cardW / 2, y + 17, { align: 'center' });
+            });
+
+            // ─── Leaderboard Title ───
+            y += cardH + 12;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(13);
+            doc.setTextColor(...gold);
+            doc.text('LEADERBOARD', margin, y);
+
+            y += 3;
+
+            // ─── Table ───
+            const medals = ['1st', '2nd', '3rd'];
+            const tableBody = data.map((r, i) => {
+                const rank = i + 1;
+                const rankLabel = rank <= 3 ? medals[rank - 1] : String(rank);
+                const m = Math.floor(r.time / 60);
+                const s = r.time % 60;
+                const roundName = ROUND_NAMES[r.round] || 'R' + r.round;
+                const winner = r.winner ? 'YES' : '';
+                return [rankLabel, r.team, roundName, `${r.score}/${r.total}`, `${m}m ${s}s`, winner];
+            });
+
+            doc.autoTable({
+                startY: y,
+                head: [['#', 'Team', 'Round', 'Score', 'Time', 'Winner']],
+                body: tableBody,
+                margin: { left: margin, right: margin },
+                theme: 'plain',
+                styles: {
+                    font: 'helvetica',
+                    fontSize: 9,
+                    textColor: [200, 200, 200],
+                    cellPadding: { top: 4, bottom: 4, left: 5, right: 5 },
+                    lineWidth: 0,
+                    fillColor: false
+                },
+                headStyles: {
+                    fontSize: 7,
+                    textColor: [...gray],
+                    fontStyle: 'bold',
+                    fillColor: false,
+                    cellPadding: { top: 3, bottom: 3, left: 5, right: 5 }
+                },
+                alternateRowStyles: {
+                    fillColor: [...cardBg]
+                },
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 15 },
+                    2: { halign: 'center', cellWidth: 22 },
+                    3: { halign: 'center', fontStyle: 'bold', textColor: [...gold] },
+                    4: { halign: 'center', cellWidth: 22 },
+                    5: { halign: 'center', cellWidth: 20, textColor: [...green] }
+                },
+                didParseCell: function (hookData) {
+                    if (hookData.column.index === 0 && hookData.section === 'body') {
+                        const val = hookData.cell.raw;
+                        if (val === '1st') hookData.cell.styles.textColor = [255, 215, 0];
+                        else if (val === '2nd') hookData.cell.styles.textColor = [192, 192, 192];
+                        else if (val === '3rd') hookData.cell.styles.textColor = [205, 127, 50];
+                    }
+                },
+                didDrawPage: function (hookData) {
+                    doc.setFillColor(...darkBg);
+                    doc.rect(0, 0, pageW, pageH, 'F');
+                }
+            });
+
+            // ─── Footer on every page ───
+            const totalPages = doc.internal.getNumberOfPages();
+            for (let p = 1; p <= totalPages; p++) {
+                doc.setPage(p);
+                doc.setDrawColor(...gold);
+                doc.setLineWidth(0.3);
+                doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
+                doc.setFontSize(7);
+                doc.setTextColor(...gray);
+                doc.text('TECH TONIC 2K26 — Department of ECE', margin, pageH - 7);
+                doc.text(`Page ${p} of ${totalPages}`, pageW - margin, pageH - 7, { align: 'right' });
+            }
+
+            // ─── Save ───
+            const fname = `Quiz_Report_${filterLabel.replace(/\s+/g, '_')}_${now.toISOString().slice(0, 10)}.pdf`;
+            doc.save(fname);
+            showToast('PDF report downloaded!', 'success');
         }
     </script>
 </body>
