@@ -299,6 +299,8 @@ function saveToBackend(score, total, timeTaken) {
     };
     fetch(SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors',
+      redirect: 'follow',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(data)
     }).catch(() => { });
