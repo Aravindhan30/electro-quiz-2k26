@@ -528,12 +528,10 @@
         // Config
         const ADMIN_KEY = 'TT26_ADMIN_123';
 
-        // ── Firebase Config — PASTE YOUR CONFIG HERE (same as quiz.js) ──
-        const FIREBASE_CONFIG = {
-            databaseURL: "https://techtonic-quiz-default-rtdb.firebaseio.com"
-        };
+        // ── Google Apps Script Backend URL — PASTE YOUR DEPLOYED URL HERE ──
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxVdQByrqrBqpvcPvcvfb5pnJMtVzRHFeRfAyWWwKsf3lWvvRXp0Tt2RSS7a6oNcNfl4w/exec';
 
-        // Results storage — populated from Firebase
+        // Results storage — populated from Apps Script backend
         let allResults = [];
 
         // Round display names
@@ -560,27 +558,20 @@
         }
 
         function refreshData() {
-            if (!FIREBASE_CONFIG.databaseURL) {
-                showToast('No Firebase URL configured', 'error');
+            if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL') {
+                showToast('Backend URL not configured', 'error');
                 renderLeaderboard();
                 return;
             }
 
             showToast('Loading data...', 'info');
-            fetch(`${FIREBASE_CONFIG.databaseURL}/quiz_results.json`)
+            const url = `${SCRIPT_URL}?action=getLeaderboard&key=${ADMIN_KEY}&round=${currentFilter}`;
+            fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     allResults = [];
-                    if (data) {
-                        // data has keys: round1, round2_set1, round2_set2
-                        for (const roundKey of Object.keys(data)) {
-                            const entries = data[roundKey];
-                            if (entries) {
-                                for (const [fbKey, entry] of Object.entries(entries)) {
-                                    allResults.push({ ...entry, fbKey: fbKey, fbRound: roundKey });
-                                }
-                            }
-                        }
+                    if (Array.isArray(data)) {
+                        allResults = data;
                     }
                     showToast(`Loaded ${allResults.length} submissions`, 'success');
                     renderLeaderboard();
@@ -654,13 +645,10 @@
                 showToast(`${team} unmarked`, 'info');
             }
 
-            // Save winner status to Firebase
-            if (FIREBASE_CONFIG.databaseURL && r.fbKey && r.fbRound) {
-                fetch(`${FIREBASE_CONFIG.databaseURL}/quiz_results/${r.fbRound}/${r.fbKey}/winner.json`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(r.winner)
-                }).catch(() => { });
+            // Save winner status via Apps Script
+            if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL') {
+                fetch(`${SCRIPT_URL}?action=selectWinner&team=${encodeURIComponent(team)}&round=${r.round}&key=${ADMIN_KEY}`)
+                    .catch(() => { });
             }
 
             renderLeaderboard();
@@ -685,6 +673,7 @@
             const gold = [212, 175, 55];
             const darkBg = [15, 15, 20];
             const cardBg = [25, 25, 35];
+            const white = [255, 255, 255];
             const gray = [150, 150, 150];
             const green = [76, 175, 80];
 
@@ -824,6 +813,8 @@
                     }
                 },
                 didDrawPage: function (hookData) {
+                    // Dark background on new pages
+                    const pg = hookData.pageNumber;
                     doc.setFillColor(...darkBg);
                     doc.rect(0, 0, pageW, pageH, 'F');
                 }
